@@ -1,27 +1,26 @@
-const buttons = [7,3,1]
+const progress = document.querySelector('.progress-bar')
 
-function addProgress(evetn) {
-  $("#progressbar").each(function() {
-    let procent = $(evetn.target).data("progress");
-    let current_progress = procent + parseInt($(this).attr("aria-valuenow"));
-    $(this)
-      .attr("aria-valuenow",current_progress)
-      .css("width", current_progress + "%")
-      .text(current_progress+"%");
+const header = new Headers({
+  'Access-Control-Allow-Credentials': true,
+  'Access-Control-Allow-Origin': '*'
+})
 
-    $(".btn").each(function(){
-      if( $( this ).data("progress") > (100-current_progress)){
-      $( this ).attr('disabled','disabled');
-     }})
-  });
-}
+const url = new URL('https://sf-pyw.mosyag.in/sse/stream-randoms')
+const ES = new EventSource(url, header)
+
 
 function init() {
-  buttons.forEach(Item => {
-    const $button = $(`<button type="button" class="btn btn-dark ml-3" data-progress="${Item}">+${Item}%</button>`);
-    $button.insertAfter( $(".progress") );
-  });
-  $(".btn").click(addProgress);
+  ES.onerror = error => {
+    ES.readyState ? progress.textContent = "Some error" : null;
+  }
+
+  ES.onmessage = ({ data }) => {
+    progress.style.cssText = `width: ${data}%`
+    progress.textContent = `${data}%`
+  }
+
 }
 
- $(document).ready(init);
+document.addEventListener("DOMContentLoaded", function(event) {
+  init()
+});
